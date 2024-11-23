@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import {} from "express-validator";
 import { generateOTP } from "../utils/otpService.js";
 import sendEmail from "../utils/sendEmail.js";
+import { errorHandler } from "../utils/error.js";
 
 let temporaryUserData = {};
 
@@ -21,7 +22,7 @@ const categoryOptions = [
   "Entertainment",
 ];
 
-export const registerUser = async (req, res) => {
+export const registerUser = async (req, res,next) => {
   const {
     firstName,
     lastName,
@@ -49,16 +50,20 @@ export const registerUser = async (req, res) => {
       confirmPassword === "" ||
       dob
     ) {
-      throw new Error("All fields are required");
+      // throw new Error("All fields are required");
+      next(errorHandler(400,"All fields are required"))
     }
     // Check if passwords match
     if (password !== confirmPassword) {
-      throw new Error("Passwords do not match");
+      // throw new Error("Passwords do not match");
+      next(errorHandler(400,"Passwords do not match"))
+
     }
     const userExists = await User.findOne({ email });
     console.log("user exists", userExists);
     if (userExists) {
-      throw new Error("User already Exists");
+      // throw new Error("User already Exists");
+      next(errorHandler(400,"User already Exists"))
     }
 
     // Validate preferences
@@ -93,7 +98,8 @@ export const registerUser = async (req, res) => {
     res.status(200).json({ message: "OTP sent successfully" });
     // return temporaryUserData[email];
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    // res.status(400).json({ message: error.message });
+    next(error.message)
   }
 };
 
