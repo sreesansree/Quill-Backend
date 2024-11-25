@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "../src/config/dbConfig.js";
 import authRoutes from "../src/routes/authRoutes.js";
+import articleRoutes from "../src/routes/articleRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -28,11 +29,11 @@ const options = {
 app.use(cors(options));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/articles/", articleRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port : ⚡ ${PORT} ⚡`);
 });
-
 
 // function to handle error
 app.use((err, req, res, next) => {
