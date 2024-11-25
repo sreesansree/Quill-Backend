@@ -4,9 +4,8 @@ import cloudinary from "../config/cloudinaryConfig.js";
 export const createArticle = async (req, res) => {
   try {
     const { title, description, content, tags, category } = req.body;
-    const userId = req.user.id; // Assuming user is authenticated and ID is attached to req.user.
-    // console.log("User IDDDD", userId);
-    // Upload cover image to Cloudinary
+    const userId = req.user.id;
+
     let imageUrl = "";
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
@@ -29,5 +28,85 @@ export const createArticle = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error creating article", error: error.message });
+  }
+};
+
+// Fetch user Articles
+export const myArticles = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const articles = await Article.find({ author: userId }).sort({
+      createdAt: -1,
+    });
+    res.status(200).json({ articles });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch articles", error });
+  }
+};
+
+// Get Single myArticle
+
+export const myArticle = async (req, res) => {
+  try {
+    const articleId = req.params.id;
+    const article = await Article.findById(articleId);
+
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    res.status(200).json({ article });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch article", error });
+  }
+};
+
+// Delete article
+export const deleteMyArticle = async (req, res) => {
+  try {
+    const articleId = req.params.id;
+    const userId = req.user.id;
+
+    const article = await Article.findOneAndDelete({
+      _id: articleId,
+      author: userId,
+    });
+    if (!article) {
+      return res
+        .status(404)
+        .json({ message: "Article not found or unauthorized" });
+    }
+    res.status(200).json({ message: "Article deleted Successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete article", error });
+  }
+};
+
+// Update Article
+
+export const editMyArticle = async (req, res) => {
+  try {
+    const articleId = req.params.id;
+    const userId = req.user.id;
+    console.log("Request Body: ", req.body);
+
+    const updateArticle = await Article.findOneAndUpdate(
+      {
+        _id: articleId,
+        author: userId,
+      },
+      { $set: req.body },
+      { new: true, runValidators: true } // `new` returns the updated document, `runValidators` ensures schema validation
+    );
+    if (!updateArticle) {
+      return res
+        .status(404)
+        .json({ message: "Article not found or unauthorized" });
+    }
+    res
+      .status(200)
+      .json({ message: "Article updated successfully", updateArticle });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update article", error });
   }
 };

@@ -1,7 +1,13 @@
 import express from "express";
 import multer from "multer";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
-import { createArticle } from "../controllers/article.controller.js";
+import {
+  createArticle,
+  deleteMyArticle,
+  editMyArticle,
+  myArticle,
+  myArticles,
+} from "../controllers/article.controller.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -12,5 +18,9 @@ router.post(
   upload.single("coverImage"),
   createArticle
 );
+router.get("/my-articles", authenticateToken, myArticles);
+router.delete("/:id", authenticateToken, deleteMyArticle);
+router.get("/:id", authenticateToken, myArticle);
+router.put("/:id", authenticateToken, editMyArticle);
 
 export default router;

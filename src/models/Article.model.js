@@ -10,6 +10,10 @@ const articleSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    content: {
+      type: String, // Adding the content field
+      required: true,
+    },
     images: [String], // Cloudinary URLs
     tags: [String],
     category: {
