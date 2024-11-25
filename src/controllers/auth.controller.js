@@ -22,7 +22,7 @@ const categoryOptions = [
   "Entertainment",
 ];
 
-export const registerUser = async (req, res,next) => {
+export const registerUser = async (req, res, next) => {
   const {
     firstName,
     lastName,
@@ -33,37 +33,44 @@ export const registerUser = async (req, res,next) => {
     dob,
     preferences,
   } = req.body;
+  console.log("req body", req.body);
   try {
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !phone ||
-      !password ||
-      !confirmPassword ||
-      !dob ||
-      firstName === "" ||
-      lastName === "" ||
-      email === "" ||
-      phone === "" ||
-      password === "" ||
-      confirmPassword === "" ||
-      dob
-    ) {
-      // throw new Error("All fields are required");
-      next(errorHandler(400,"All fields are required"))
+    if (!firstName || firstName === " ") {
+      next(errorHandler(400, "First name required"));
     }
+    if (!lastName || lastName === " ") {
+      next(errorHandler(400, "Last name required"));
+    }
+    if (!email || email === " ") {
+      next(errorHandler(400, "Email required"));
+    }
+    if (!phone || phone === " ") {
+      next(errorHandler(400, "phone required"));
+    }
+    if (!password || password === " ") {
+      next(errorHandler(400, "password required"));
+    }
+    if (!confirmPassword || confirmPassword === " ") {
+      next(errorHandler(400, "Confirm password required"));
+    }
+    if (!dob || dob === " ") {
+      next(errorHandler(400, "dob required"));
+    }
+
     // Check if passwords match
     if (password !== confirmPassword) {
       // throw new Error("Passwords do not match");
-      next(errorHandler(400,"Passwords do not match"))
-
+      next(errorHandler(400, "Passwords do not match"));
     }
     const userExists = await User.findOne({ email });
-    console.log("user exists", userExists);
+    const userPhoneExists = await User.findOne({ phone });
     if (userExists) {
       // throw new Error("User already Exists");
-      next(errorHandler(400,"User already Exists"))
+      next(errorHandler(400, "User already Exists"));
+    }
+    if (userPhoneExists) {
+      // throw new Error("User already Exists");
+      next(errorHandler(400, "Mobile number already Exists"));
     }
 
     // Validate preferences
@@ -99,16 +106,17 @@ export const registerUser = async (req, res,next) => {
     // return temporaryUserData[email];
   } catch (error) {
     // res.status(400).json({ message: error.message });
-    next(error.message)
+    next(error.message);
   }
 };
 
-export const resendOTP = async (req, res) => {
+export const resendOTP = async (req, res, next) => {
   const { email } = req.body;
   try {
     const user = temporaryUserData[email];
     if (!user) {
-      throw new Error("User not found or OTP already verified");
+      // throw new Error("User not found or OTP already verified");
+      return next(errorHandler(400, "User not found or OTP already verified."));
     }
 
     const otp = generateOTP();
@@ -121,23 +129,27 @@ export const resendOTP = async (req, res) => {
 
     res.status(200).json({ message: "OTP resend successfully" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    // res.status(400).json({ message: error.message });
+    next(errorHandler(400, error.message));
   }
 };
 
-export const verifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res, next) => {
   const { email, otp } = req.body;
   try {
     const user = temporaryUserData[email];
 
     if (!user) {
-      throw new Error("User not found");
+      // throw new Error("User not found");
+      return next(errorHandler(400, "User not found."));
     }
     if (user.otpExpires < Date.now()) {
-      throw new Error("OTP has expired");
+      // throw new Error("OTP has expired");
+      return next(errorHandler(400, "OTP has expired."));
     }
     if (user.otp !== otp) {
-      throw new Error("Invalid OTP");
+      // throw new Error("Invalid OTP");
+      return next(errorHandler(400, "Invalid OTP."));
     }
     // Save user to the database
     const newUser = new User({
@@ -160,8 +172,58 @@ export const verifyOTP = async (req, res) => {
       .status(200)
       .json({ message: "Account verified and registered successfully" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    // res.status(400).json({ message: error.message });
+    next(errorHandler(400, error.message));
   }
 };
 
-export const loginUser = async (req, res) => {};
+export const loginUser = async (req, res, next) => {
+  const { credential, password } = req.body;
+  try {
+    // Determine if the credential is an email or mobile
+    const isEmail = /\S+@\S+\.\S+/.test(credential);
+    const user = await User.findOne(
+      isEmail ? { email: credential } : { phone: credential }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+    res.status(200).json({
+      message: "Login Successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.firstName,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    next(errorHandler(400, error.message));
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) {
+      return res.status(400).json({ message: "No token provided" });
+    }
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    next(errorHandler(400, error.message));
+  }
+};
