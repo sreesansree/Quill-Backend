@@ -227,3 +227,46 @@ export const logout = async (req, res, next) => {
     next(errorHandler(400, error.message));
   }
 };
+
+export const requestOTP = async (req, res, next) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      next(errorHandler(400, "User not found"));
+    }
+    const OTP = generateOTP();
+    user.otp = OTP;
+    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+    const subject = "Quill Verification - Forget password";
+    const message = `Your OTP code is ${OTP}. It will expire in 10 minutes. Please enter this code to verify your account.`;
+
+    await sendEmail(email, subject, message);
+    res.status(200).json({ message: "OTP Send to your email" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { email, otp, newPassword } = req.body;
+  try {
+    const user = await User.findOne({
+      email,
+      otp,
+      otpExpires: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
