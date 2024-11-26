@@ -110,3 +110,28 @@ export const editMyArticle = async (req, res) => {
     res.status(500).json({ message: "Failed to update article", error });
   }
 };
+
+export const getArticlesByPreference = async (req, res) => {
+  console.log("Entered getArticlesByPreference");
+
+  try {
+    const { preferences } = req.user;
+
+    // Ensure preferences exist and are valid
+    if (!preferences || !Array.isArray(preferences)) {
+      return res.status(400).json({ message: "Invalid or missing preferences" });
+    }
+
+    console.log("Preferences for Query:", preferences);
+
+    const articles = await Article.find({
+      category: { $in: preferences }, // Match categories to preferences
+    }).populate("author", "firstName lastName");
+
+    res.status(200).json(articles);
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    res.status(500).json({ message: "Error fetching articles", error });
+  }
+};
+
