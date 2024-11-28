@@ -19,11 +19,13 @@ router.post(
   upload.single("coverImage"),
   createArticle
 );
+
 router.get("/my-articles", authenticateToken, myArticles);
 router.delete("/:id", authenticateToken, deleteMyArticle);
+router.get("/preferences", authenticateToken, getArticlesByPreference);
+
+/* Fetch and edit myArtcle */
 router.get("/:id", authenticateToken, myArticle);
 router.put("/:id", authenticateToken, editMyArticle);
-
-router.get("/preferences", authenticateToken, getArticlesByPreference);
 
 export default router;

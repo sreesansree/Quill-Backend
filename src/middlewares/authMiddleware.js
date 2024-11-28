@@ -13,15 +13,10 @@ export const authenticateToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("Userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",user)
     req.user = user; // Attach user, including preferences
     next();
-    // jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    //   if (err) {
-    //     return res.status(403).json({ message: "Invalid token" });
-    //   }
-    //   req.user = user;
-    //   next();
-    // });
+ 
   } catch (error) {
     console.error("Authentication Error:", error);
     res.status(401).json({ message: "Invalid token" });
