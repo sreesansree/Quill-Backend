@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "../src/config/dbConfig.js";
 import authRoutes from "../src/routes/authRoutes.js";
 import articleRoutes from "../src/routes/articleRoutes.js";
+import userRoutes from "../src/routes/userRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -30,7 +31,7 @@ app.use(cors(options));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/articles/", articleRoutes);
-
+app.use("/api/user",userRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port : ⚡ ${PORT} ⚡`);
 });

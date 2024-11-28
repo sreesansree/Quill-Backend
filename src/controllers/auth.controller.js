@@ -208,7 +208,12 @@ export const loginUser = async (req, res, next) => {
       user: {
         id: user._id,
         name: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        profilePicture: user.profilePicture,
+        dob: user.dob,
+        phone: user.phone,
+        preferences: user.preferences,
       },
     });
   } catch (error) {

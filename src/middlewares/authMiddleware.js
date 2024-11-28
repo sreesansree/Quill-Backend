@@ -13,8 +13,8 @@ export const authenticateToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log("Userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",user)
-    req.user = user; // Attach user, including preferences
+    // console.log("Userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",user)
+    req.user = user; 
     next();
  
   } catch (error) {

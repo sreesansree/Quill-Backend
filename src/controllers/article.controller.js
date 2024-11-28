@@ -1,7 +1,27 @@
 import Article from "../models/Article.model.js";
 import cloudinary from "../config/cloudinaryConfig.js";
+import { body, validationResult } from "express-validator";
 
 export const createArticle = async (req, res) => {
+    // Validate request
+  await body("title").notEmpty().withMessage("Title is required").run(req);
+  await body("description")
+    .isLength({ max: 255 })
+    .withMessage("Description must not exceed 255 characters")
+    .optional()
+    .run(req);
+  await body("content").notEmpty().withMessage("Content is required").run(req);
+  await body("tags")
+    .optional()
+    .matches(/^[\w\s,]+$/)
+    .withMessage("Tags should be a comma-separated list of words")
+    .run(req);
+  await body("category").notEmpty().withMessage("Category is required").run(req);
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     const { title, description, content, tags, category } = req.body;
     const userId = req.user.id;
@@ -126,7 +146,6 @@ export const getArticlesByPreference = async (req, res) => {
         .json({ message: "No preferences set by user", articles: [] });
     }
 
-    console.log("Preferences for Query:", preferences);
 
     // Find articles that match the user's preferences
     const articles = await Article.find({
@@ -135,7 +154,6 @@ export const getArticlesByPreference = async (req, res) => {
       .populate("author", "firstName lastName") // Populate author details
       .sort({ createdAt: -1 }); // Sort articles by creation date (newest first)
 
-    console.log("Filtered Articles:", articles);
     res.status(200).json(articles);
   } catch (error) {
     console.error("Error fetching articles:", error);
