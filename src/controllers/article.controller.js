@@ -3,7 +3,7 @@ import cloudinary from "../config/cloudinaryConfig.js";
 import { body, validationResult } from "express-validator";
 
 export const createArticle = async (req, res) => {
-    // Validate request
+  // Validate request
   await body("title").notEmpty().withMessage("Title is required").run(req);
   await body("description")
     .isLength({ max: 255 })
@@ -16,7 +16,10 @@ export const createArticle = async (req, res) => {
     .matches(/^[\w\s,]+$/)
     .withMessage("Tags should be a comma-separated list of words")
     .run(req);
-  await body("category").notEmpty().withMessage("Category is required").run(req);
+  await body("category")
+    .notEmpty()
+    .withMessage("Category is required")
+    .run(req);
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -146,7 +149,6 @@ export const getArticlesByPreference = async (req, res) => {
         .json({ message: "No preferences set by user", articles: [] });
     }
 
-
     // Find articles that match the user's preferences
     const articles = await Article.find({
       category: { $in: preferences }, // Match categories to user preferences
@@ -158,5 +160,20 @@ export const getArticlesByPreference = async (req, res) => {
   } catch (error) {
     console.error("Error fetching articles:", error);
     res.status(500).json({ message: "Error fetching articles", error });
+  }
+};
+
+export const articleDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const article = await Article.findById(id).populate("author", "firstName lastName");
+
+    if (!article) return res.status(404).json({ message: "Article not found" });
+
+    res.status(200).json(article);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching the article", error: error.message });
   }
 };

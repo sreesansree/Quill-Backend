@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
 import {
+  articleDetails,
   createArticle,
   deleteMyArticle,
   editMyArticle,
@@ -27,5 +28,7 @@ router.get("/preferences", authenticateToken, getArticlesByPreference);
 /* Fetch and edit myArtcle */
 router.get("/:id", authenticateToken, myArticle);
 router.put("/:id", authenticateToken, editMyArticle);
+
+router.get("/article-details/:id", authenticateToken, articleDetails);
 
 export default router;

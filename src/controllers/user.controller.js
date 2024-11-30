@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.model.js";
+import Article from "../models/Article.model.js";
 import { errorHandler } from "../utils/error.js";
 
 export const updateUserProfile = async (req, res, next) => {
@@ -38,14 +39,19 @@ export const changePassword = async (req, res, next) => {
 
   // Validate inputs
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ message: "Both current and new passwords are required." });
+    return res
+      .status(400)
+      .json({ message: "Both current and new passwords are required." });
   }
 
   if (newPassword.length < 6) {
-    return res.status(400).json({ message: "New password must be at least 6 characters long." });
+    return res
+      .status(400)
+      .json({ message: "New password must be at least 6 characters long." });
   }
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordRegex.test(newPassword)) {
     return res.status(400).json({
       message:
@@ -63,9 +69,11 @@ export const changePassword = async (req, res, next) => {
 
     // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    console.log("isMatch",isMatch)
+    console.log("isMatch", isMatch);
     if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect." });
+      return res
+        .status(400)
+        .json({ message: "Current password is incorrect." });
     }
 
     // Check if new password is the same as the current password
@@ -90,3 +98,106 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
+/* Like Article */
+
+export const likeArticle = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const userId = req.user.id;
+
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    // Check if user already liked the article
+    if (article.likes.some((id) => id.toString() === userId)) {
+      return res
+        .status(400)
+        .json({ message: "You already liked this article" });
+    }
+
+    // Add user to likes and remove from dislikes if present
+    article.likes.push(userId);
+    article.dislikes = article.dislikes.filter(
+      (id) => id.toString() !== userId
+    );
+
+    await article.save();
+
+    return res.status(200).json({
+      message: "Article liked successfully",
+      article,
+      likesCount: article.likes.length,
+      dislikesCount: article.dislikes.length,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error liking the article",
+      error: error.message,
+    });
+  }
+};
+
+/* Dislike Article */
+
+export const dislikeArticle = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const userId = req.user.id;
+
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    // Check if user already disliked the article
+    if (article.dislikes.some((id) => id.toString() === userId)) {
+      return res
+        .status(400)
+        .json({ message: "You already disliked this article" });
+    }
+
+    // Add user to dislikes and remove from likes if present
+    article.dislikes.push(userId);
+    article.likes = article.likes.filter((id) => id.toString() !== userId);
+
+    await article.save();
+
+    return res.status(200).json({
+      message: "Article disliked successfully",
+      article,
+      likesCount: article.likes.length,
+      dislikesCount: article.dislikes.length,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error disliking the article",
+      error: error.message,
+    });
+  }
+};
+
+/* Block Article */
+
+export const blockArticle = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const userId = req.user.id;
+
+    const article = await Article.findById(articleId);
+    if (!article) return res.status(404).json({ message: "Article not found" });
+
+    // Add user to the blockedBy list
+    if (!article.blocks.includes(userId)) {
+      article.blocks.push(userId);
+      await article.save();
+    }
+
+    res.status(200).json({ message: "Article blocked successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error blocking the article", error: error.message });
+  }
+};
