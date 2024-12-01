@@ -22,8 +22,11 @@ app.get("/", (req, res) => {
   res.send("Hai Sreee");
 });
 const options = {
-  origin: "*",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  origin: [
+    "http://localhost:5173",
+    "quill-frontend-2hc6sph8e-sreesansrees-projects.vercel.app",
+  ],
+  methods: ["GET","HEAD","PUT","PATCH","POST","DELETE"],
   preflightContinue: false,
   optionsSuccessStatus: 204,
 };
@@ -31,7 +34,7 @@ app.use(cors(options));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/articles/", articleRoutes);
-app.use("/api/user",userRoutes);
+app.use("/api/user", userRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port : ⚡ ${PORT} ⚡`);
 });

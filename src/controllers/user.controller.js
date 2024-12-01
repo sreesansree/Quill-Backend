@@ -201,3 +201,47 @@ export const blockArticle = async (req, res) => {
       .json({ message: "Error blocking the article", error: error.message });
   }
 };
+
+/* Get Liked Articles */
+
+export const getLikedArticles = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const likedArticles = await Article.find({ likes: userId });
+    res.status(200).json(likedArticles);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching liked articles", error: error.message });
+  }
+};
+
+/* GEt disliked Articles */
+
+export const getDislikedAticles = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const dislikedArtcles = await Article.find({ dislikes: userId });
+    res.status(200).json(dislikedArtcles);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching disliked articles",
+      error: error.message,
+    });
+  }
+};
+
+/* Get Blocked Articles */
+
+export const getBlockedArticles = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const blockedArticles = await Article.find({ blocks: userId });
+    res.status(200).json(blockedArticles);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching blocked Articles",
+      error: error.message,
+    });
+  }
+};
