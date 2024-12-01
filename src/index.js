@@ -18,19 +18,20 @@ app.use(express.json({ extended: true, limit: "500mb" }));
 app.use(express.urlencoded({ extended: true, limit: "500mb" }));
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send("Hai Sreee");
-});
 const options = {
   origin: [
     "http://localhost:5173",
-    "quill-frontend-2hc6sph8e-sreesansrees-projects.vercel.app",
+    "https://quill-frontend-2hc6sph8e-sreesansrees-projects.vercel.app",
   ],
-  methods: ["GET","HEAD","PUT","PATCH","POST","DELETE"],
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   preflightContinue: false,
   optionsSuccessStatus: 204,
 };
 app.use(cors(options));
+
+app.get("/", (req, res) => {
+  res.send("Backend is working");
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/articles/", articleRoutes);
