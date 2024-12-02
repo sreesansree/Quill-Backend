@@ -21,7 +21,7 @@ app.use(cookieParser());
 const options = {
   origin: [
     "http://localhost:5173",
-    "https://quill-frontend-2hc6sph8e-sreesansrees-projects.vercel.app",
+    "https://quill-frontend-nine.vercel.app/",
   ],
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   preflightContinue: false,
