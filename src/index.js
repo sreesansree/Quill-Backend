@@ -20,12 +20,12 @@ app.use(cookieParser());
 
 const options = {
   origin: [
-    "http://localhost:5173",
-    "https://quill-frontend-nine.vercel.app/",
+    "http://localhost:5173", // Local development URL
+    "https://quill-frontend-nine.vercel.app" // Vercel frontend URL
   ],
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
+  preflightContinue: false,  // This ensures the CORS middleware handles the preflight request
+  optionsSuccessStatus: 204 // HTTP 204 success status for preflight
 };
 app.use(cors(options));
 
