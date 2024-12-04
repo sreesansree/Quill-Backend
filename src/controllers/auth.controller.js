@@ -5,6 +5,7 @@ import {} from "express-validator";
 import { generateOTP } from "../utils/otpService.js";
 import sendEmail from "../utils/sendEmail.js";
 import { errorHandler } from "../utils/error.js";
+import moment from "moment";
 
 let temporaryUserData = {};
 
@@ -62,6 +63,13 @@ export const registerUser = async (req, res, next) => {
       // throw new Error("Passwords do not match");
       next(errorHandler(400, "Passwords do not match"));
     }
+    // Validate date of birth
+    const birthDate = moment(dob);
+    const age = moment().diff(birthDate, "years");
+    if (age < 12) {
+      return next(errorHandler(400, "You must be at least 12 years old"));
+    }
+
     const userExists = await User.findOne({ email });
     const userPhoneExists = await User.findOne({ phone });
     if (userExists) {
