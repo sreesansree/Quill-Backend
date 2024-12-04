@@ -214,8 +214,8 @@ export const loginUser = async (req, res, next) => {
       message: "Login Successful",
       token,
       user: {
-        id: user._id,
-        name: user.firstName,
+        _id: user._id,
+        firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         profilePicture: user.profilePicture,
